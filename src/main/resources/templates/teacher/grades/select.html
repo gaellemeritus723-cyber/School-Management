@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Choisir Session</title><style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .topbar { background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%); color: white; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+    .topbar h1 { font-size: 19px; font-weight: 700; }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+    .logout-btn { background: rgba(255,255,255,.2); color: white; border: 1px solid rgba(255,255,255,.4); padding: 6px 14px; border-radius: 8px; text-decoration: none; font-size: 12px; }
+    .content { max-width: 700px; margin: 28px auto; padding: 0 16px; }
+    .breadcrumb { font-size: 13px; color: #888; margin-bottom: 16px; }
+    .breadcrumb a { color: #1a2980; text-decoration: none; }
+    .card { background: white; border-radius: 12px; padding: 28px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .card-title { font-size: 16px; font-weight: 700; color: #1a2980; margin-bottom: 6px; }
+    .card-subtitle { font-size: 13px; color: #888; margin-bottom: 24px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+    .option-btn { border: 2px solid #e0e0e0; border-radius: 10px; padding: 18px; text-align: center; cursor: pointer; transition: all .2s; background: white; }
+    .option-btn:hover { border-color: #1a2980; background: #f0f4ff; }
+    .option-btn.selected { border-color: #1a2980; background: #e8eaf6; }
+    .option-btn h3 { font-size: 15px; color: #1a2980; font-weight: 700; }
+    .option-btn p { font-size: 12px; color: #888; margin-top: 4px; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: #1a2980; color: white; }
+    .btn-back { background: #ecf0f1; color: #555; }
+    .divider { font-size: 11px; text-transform: uppercase; color: #aaa; letter-spacing: 1px; margin: 18px 0 12px; }
+    .actions { display: flex; gap: 10px; margin-top: 8px; }
+    .course-header { background: #e8eaf6; border-radius: 8px; padding: 12px 16px; margin-bottom: 22px; }
+    .course-header h2 { font-size: 15px; color: #1a2980; font-weight: 700; }
+</style>
+<script>
+    let selectedSession = null;
+    let selectedType = null;
+
+    function selectOption(group, value, el) {
+        document.querySelectorAll('.option-btn.' + group).forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        if (group === 'session') selectedSession = value;
+        else selectedType = value;
+        checkReady();
+    }
+
+    function checkReady() {
+        document.getElementById('proceedBtn').disabled = !(selectedSession && selectedType);
+    }
+
+    function proceed() {
+        if (!selectedSession || !selectedType) return;
+        const courseId = document.getElementById('courseId').value;
+        window.location.href = `/teacher/grades/course/${courseId}/enter?session=${selectedSession}&examType=${selectedType}`;
+    }
+</script>
+</head>
+<body>
+<div class="topbar">
+  <h1>&#128221; Saisie des Notes</h1>
+  <div class="user-info">
+    <div class="avatar" th:text="${#strings.toUpperCase(#strings.substring(teacher.name,0,1))}">P</div>
+    <div style="font-size:13px;font-weight:600;" th:text="${teacher.name}">Prof</div>
+    <a href="/logout" class="logout-btn">Déconnexion</a>
+  </div>
+</div>
+
+<div class="content">
+  <div class="breadcrumb">
+    <a href="/teacher/home">&#127968; Accueil</a> ›
+    <a href="/teacher/grades">Mes cours</a> ›
+    <span th:text="${course.title}">Cours</span>
+  </div>
+
+  <div class="card">
+    <div class="course-header">
+      <h2>&#128218; <span th:text="${course.title}">Titre du cours</span></h2>
+    </div>
+
+    <input type="hidden" id="courseId" th:value="${course.id}"/>
+
+    <div class="card-title">Choisissez la session</div>
+    <div class="card-subtitle">Sélectionnez la session et le type d'examen pour saisir les notes</div>
+
+    <div class="divider">Session</div>
+    <div class="grid-2">
+      <div class="option-btn session" onclick="selectOption('session', 1, this)">
+        <h3>&#127970; Session 1</h3>
+        <p>Première session de l'année</p>
+      </div>
+      <div class="option-btn session" onclick="selectOption('session', 2, this)">
+        <h3>&#127970; Session 2</h3>
+        <p>Deuxième session de l'année</p>
+      </div>
+    </div>
+
+    <div class="divider">Type d'examen</div>
+    <div class="grid-2">
+      <div class="option-btn type" onclick="selectOption('type', 'INTRA', this)">
+        <h3>&#128203; Intra</h3>
+        <p>Examen intra-session</p>
+      </div>
+      <div class="option-btn type" onclick="selectOption('type', 'FINAL', this)">
+        <h3>&#127942; Final</h3>
+        <p>Examen final de session</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="proceedBtn" class="btn btn-primary" onclick="proceed()" disabled>
+        &#9998; Saisir les notes
+      </button>
+      <a href="/teacher/grades" class="btn btn-back">&#8592; Retour</a>
+    </div>
+  </div>
+</div>
+</body></html>

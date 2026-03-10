@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Connexion — SchoolMS</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 48px 40px;
+            width: 400px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+        }
+        .logo { text-align: center; margin-bottom: 8px; font-size: 48px; }
+        h1 { text-align: center; color: #1a2980; font-size: 26px; margin-bottom: 4px; }
+        .subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 32px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 6px; color: #555; font-size: 14px; font-weight: 600; }
+        input[type="text"], input[type="password"] {
+            width: 100%; padding: 13px 16px;
+            border: 2px solid #e0e0e0; border-radius: 10px;
+            font-size: 15px; transition: border-color .2s;
+        }
+        input:focus { outline: none; border-color: #1a2980; }
+        button[type="submit"] {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: white; border: none; border-radius: 10px;
+            font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: opacity .2s; margin-top: 4px;
+        }
+        button[type="submit"]:hover { opacity: 0.88; }
+        .alert {
+            padding: 12px 16px; border-radius: 8px;
+            margin-bottom: 18px; font-size: 14px; text-align: center;
+        }
+        .alert-error { background: #ffebee; color: #c62828; border-left: 4px solid #e53935; }
+        .alert-success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #43a047; }
+        .hint {
+            margin-top: 24px; padding: 16px;
+            background: #f5f7ff; border-radius: 10px;
+            font-size: 13px; color: #666; line-height: 1.8;
+        }
+        .hint strong { color: #1a2980; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="logo">🏫</div>
+    <h1>SchoolMS</h1>
+    <p class="subtitle">Système de Gestion Scolaire</p>
+
+    <div th:if="${param.error}" class="alert alert-error">
+        Identifiants incorrects. Veuillez réessayer.
+    </div>
+    <div th:if="${param.logout}" class="alert alert-success">
+        Vous avez été déconnecté avec succès.
+    </div>
+
+    <form method="post" th:action="@{/login}">
+        <div class="form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" id="username" name="username"
+                   required autofocus placeholder="admin ou user"/>
+        </div>
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password"
+                   required placeholder="••••••••"/>
+        </div>
+        <button type="submit">Se connecter</button>
+    </form>
+
+    <div class="hint">
+        <strong>Comptes par défaut :</strong><br>
+        🔑 Admin : <strong>admin</strong> / admin123<br>
+        👤 User : <strong>user</strong> / user123
+    </div>
+</div>
+</body>
+</html>

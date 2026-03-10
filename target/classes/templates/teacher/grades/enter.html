@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Saisie des Notes</title><style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .topbar { background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%); color: white; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+    .topbar h1 { font-size: 19px; font-weight: 700; }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+    .logout-btn { background: rgba(255,255,255,.2); color: white; border: 1px solid rgba(255,255,255,.4); padding: 6px 14px; border-radius: 8px; text-decoration: none; font-size: 12px; }
+    .content { max-width: 960px; margin: 28px auto; padding: 0 16px; }
+    .breadcrumb { font-size: 13px; color: #888; margin-bottom: 16px; }
+    .breadcrumb a { color: #1a2980; text-decoration: none; }
+    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .card-title { font-size: 16px; font-weight: 700; color: #1a2980; }
+    .tags { display: flex; gap: 8px; }
+    .tag { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .tag-session { background: #e3f2fd; color: #1565c0; }
+    .tag-intra { background: #fff3e0; color: #e65100; }
+    .tag-final { background: #e8f5e9; color: #2e7d32; }
+    table { width: 100%; border-collapse: collapse; }
+    table th { background: #f8f9fa; padding: 11px 14px; text-align: left; font-size: 12px; text-transform: uppercase; color: #888; border-bottom: 2px solid #ebebeb; }
+    table td { padding: 10px 14px; border-bottom: 1px solid #f2f2f2; font-size: 14px; color: #333; vertical-align: middle; }
+    table tr:last-child td { border-bottom: none; }
+    table tr:hover td { background: #fafafa; }
+    .score-input { width: 90px; padding: 7px 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; text-align: center; }
+    .score-input:focus { outline: none; border-color: #1a2980; }
+    .score-input.has-value { border-color: #27ae60; background: #f0fff4; }
+    .score-input.low { border-color: #e74c3c; background: #fff5f5; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; border-radius: 8px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; text-decoration: none; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: #1a2980; color: white; }
+    .btn-back { background: #ecf0f1; color: #555; }
+    .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+    .code-badge { background: #e8eaf6; color: #3949ab; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+    .info-bar { background: #e8f4fd; border-left: 4px solid #1a2980; padding: 10px 16px; border-radius: 6px; font-size: 13px; color: #1a2980; margin-bottom: 18px; }
+</style>
+<script>
+function colorize(input) {
+    input.classList.remove('has-value','low');
+    if (input.value === '') return;
+    const v = parseFloat(input.value);
+    if (v < 65) input.classList.add('low');
+    else input.classList.add('has-value');
+}
+</script>
+</head>
+<body>
+<div class="topbar">
+  <h1>&#128221; Saisie des Notes</h1>
+  <div class="user-info">
+    <div class="avatar" th:text="${#strings.toUpperCase(#strings.substring(teacher.name,0,1))}">P</div>
+    <div style="font-size:13px;font-weight:600;" th:text="${teacher.name}">Prof</div>
+    <a href="/logout" class="logout-btn">Déconnexion</a>
+  </div>
+</div>
+
+<div class="content">
+  <div class="breadcrumb">
+    <a href="/teacher/home">&#127968; Accueil</a> ›
+    <a href="/teacher/grades">Mes cours</a> ›
+    <a th:href="@{/teacher/grades/course/{id}(id=${course.id})}" th:text="${course.title}">Cours</a> ›
+    Saisie
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">&#128203; <span th:text="${course.title}">Cours</span></div>
+      <div class="tags">
+        <span class="tag tag-session">Session <span th:text="${session}">1</span></span>
+        <span class="tag tag-intra" th:if="${examType == 'INTRA'}">Examen Intra</span>
+        <span class="tag tag-final" th:if="${examType == 'FINAL'}">Examen Final</span>
+      </div>
+    </div>
+
+    <div class="info-bar">
+      &#128161; Les notes en <strong style="color:#e74c3c;">rouge</strong> sont inférieures à 65 (reprise). Notes sur <strong>100</strong>.
+    </div>
+
+    <form th:action="@{/teacher/grades/course/{id}/save(id=${course.id})}" method="post">
+      <input type="hidden" name="session" th:value="${session}"/>
+      <input type="hidden" name="examType" th:value="${examType}"/>
+     
+      
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Code Étudiant</th>
+            <th>Nom complet</th>
+            <th>Note /100</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="entry, i : ${entries}">
+            <td th:text="${i.count}">1</td>
+            <td><span class="code-badge" th:text="${entry.student.studentCode}">ETU-001</span></td>
+            <td th:text="${entry.student.name}">Nom</td>
+            <td>
+              <input type="number"
+                     th:name="'score_' + ${entry.student.id}"
+                     th:value="${entry.score}"
+                     class="score-input"
+                     th:classappend="${entry.score != null and entry.score < 65} ? 'low' : (entry.score != null ? 'has-value' : '')"
+                     min="0" max="100" step="0.5"
+                     placeholder="—"
+                     oninput="colorize(this)"/>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">&#128190; Enregistrer toutes les notes</button>
+        <a th:href="@{/teacher/grades/course/{id}(id=${course.id})}" class="btn btn-back">&#8592; Retour</a>
+      </div>
+    </form>
+  </div>
+</div>
+</body></html>

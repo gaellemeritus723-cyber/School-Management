@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Mon Bulletin</title><style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .topbar { background: linear-gradient(135deg, #1a2980 0%, #26d0ce 100%); color: white; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; }
+    .topbar h1 { font-size: 19px; font-weight: 700; }
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+    .logout-btn { background: rgba(255,255,255,.2); color: white; border: 1px solid rgba(255,255,255,.4); padding: 6px 14px; border-radius: 8px; text-decoration: none; font-size: 12px; }
+    .content { max-width: 900px; margin: 28px auto; padding: 0 16px 40px; }
+    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-bottom: 20px; }
+
+    /* En-tête bulletin */
+    .bulletin-header { text-align: center; padding-bottom: 16px; border-bottom: 2px solid #e8eaf6; margin-bottom: 20px; }
+    .school-name { font-size: 20px; font-weight: 800; color: #1a2980; letter-spacing: 1px; text-transform: uppercase; }
+    .school-sub { font-size: 12px; color: #888; margin-top: 2px; }
+    .bulletin-title { font-size: 15px; font-weight: 700; color: #444; margin-top: 12px; letter-spacing: 2px; text-transform: uppercase; border-top: 1px solid #e0e0e0; border-bottom: 1px solid #e0e0e0; padding: 6px 0; display: inline-block; }
+
+    /* Infos étudiant */
+    .student-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; background: #f8f9fa; border-radius: 8px; padding: 14px 18px; margin-bottom: 18px; }
+    .info-item label { font-size: 10px; text-transform: uppercase; color: #aaa; }
+    .info-item p { font-size: 14px; color: #333; font-weight: 600; margin-top: 1px; }
+
+    /* Filtre session */
+    .session-filter { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+    .filter-btn { padding: 7px 16px; border-radius: 20px; border: 2px solid #e0e0e0; background: white; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; color: #555; transition: all .15s; }
+    .filter-btn:hover, .filter-btn.active { border-color: #1a2980; background: #1a2980; color: white; }
+
+    /* Table notes */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table th { background: #1a2980; color: white; padding: 10px 12px; text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+    table th:first-child { text-align: left; }
+    table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; text-align: center; }
+    table td:first-child { text-align: left; font-weight: 600; color: #333; }
+    table tr:last-child td { border-bottom: none; }
+    table tr:hover td { background: #fafbff; }
+    .score-ok { color: #27ae60; font-weight: 700; }
+    .score-low { color: #e74c3c; font-weight: 700; }
+    .score-dash { color: #ccc; }
+    .moyenne-row td { background: #e8eaf6 !important; font-weight: 700; color: #1a2980; font-size: 14px; }
+    .sub-header td { background: #f8f9fa; font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; }
+
+    /* Reprise */
+    .reprise-box { background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px; padding: 14px 18px; margin-top: 18px; }
+    .reprise-box h3 { color: #856404; font-size: 14px; margin-bottom: 8px; }
+    .reprise-item { font-size: 13px; color: #856404; padding: 3px 0; }
+    .reprise-item::before { content: "⚠️ "; }
+
+    /* Moyenne générale */
+    .moyenne-generale { display: flex; align-items: center; justify-content: space-between; background: #e8eaf6; border-radius: 10px; padding: 16px 22px; margin-top: 18px; }
+    .moy-label { font-size: 14px; font-weight: 700; color: #1a2980; }
+    .moy-value { font-size: 28px; font-weight: 800; color: #1a2980; }
+    .moy-value span { font-size: 16px; font-weight: 400; color: #888; }
+    .no-notes { text-align: center; padding: 40px; color: #bbb; font-size: 14px; }
+</style></head>
+<body>
+<div class="topbar">
+  <h1>&#127979; SchoolMS — Mon Bulletin</h1>
+  <div class="user-info">
+    <div class="avatar" th:text="${#strings.toUpperCase(#strings.substring(student.name,0,1))}">E</div>
+    <div>
+      <div style="font-size:13px;font-weight:600;" th:text="${student.name}">Nom</div>
+      <div style="font-size:11px;opacity:.8;" th:text="${student.studentCode}">Code</div>
+    </div>
+    <a href="/logout" class="logout-btn">Déconnexion</a>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Filtre session -->
+  <div class="session-filter">
+    <a href="/student/bulletin" class="filter-btn" th:classappend="${selectedSession == null} ? 'active' : ''">Toutes les sessions</a>
+    <a href="/student/bulletin?session=1" class="filter-btn" th:classappend="${selectedSession == 1} ? 'active' : ''">Session 1</a>
+    <a href="/student/bulletin?session=2" class="filter-btn" th:classappend="${selectedSession == 2} ? 'active' : ''">Session 2</a>
+  </div>
+
+  <div class="card">
+    <!-- En-tête école -->
+    <div class="bulletin-header">
+      <div class="school-name">&#127979; SchoolMS</div>
+      <div class="school-sub">Système de Gestion Scolaire</div>
+      <div style="margin-top:10px;">
+        <span class="bulletin-title">Bulletin de Notes</span>
+      </div>
+    </div>
+
+    <!-- Infos étudiant -->
+    <div class="student-info">
+      <div class="info-item">
+        <label>Nom complet</label>
+        <p th:text="${student.name}">Jean Dupont</p>
+      </div>
+      <div class="info-item">
+        <label>Code Étudiant</label>
+        <p th:text="${student.studentCode}">ETU-001</p>
+      </div>
+      <div class="info-item">
+        <label>Session affichée</label>
+        <p th:text="${selectedSession != null ? 'Session ' + selectedSession : 'Toutes'}">Toutes</p>
+      </div>
+    </div>
+
+    <!-- Table des notes -->
+    <div th:if="${bulletin.rows.isEmpty()}" class="no-notes">
+      &#128203; Aucune note disponible pour le moment.
+    </div>
+
+    <table th:if="${!bulletin.rows.isEmpty()}">
+      <thead>
+        <tr>
+          <th style="min-width:160px;">Matière</th>
+          <th colspan="2">Session 1</th>
+          <th colspan="2">Session 2</th>
+          <th>Moyenne</th>
+        </tr>
+        <tr class="sub-header">
+          <td></td>
+          <td>Intra</td>
+          <td>Final</td>
+          <td>Intra</td>
+          <td>Final</td>
+          <td>/100</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="row : ${bulletin.rows}">
+          <td th:text="${row.courseName}">Matière</td>
+          <!-- Session 1 Intra -->
+          <td>
+            <span th:if="${row.getScore('INTRA', 1) != null}"
+                  th:text="${row.getScore('INTRA', 1)}"
+                  th:class="${row.getScore('INTRA', 1) >= 65} ? 'score-ok' : 'score-low'"></span>
+            <span th:if="${row.getScore('INTRA', 1) == null}" class="score-dash">—</span>
+          </td>
+          <!-- Session 1 Final -->
+          <td>
+            <span th:if="${row.getScore('FINAL', 1) != null}"
+                  th:text="${row.getScore('FINAL', 1)}"
+                  th:class="${row.getScore('FINAL', 1) >= 65} ? 'score-ok' : 'score-low'"></span>
+            <span th:if="${row.getScore('FINAL', 1) == null}" class="score-dash">—</span>
+          </td>
+          <!-- Session 2 Intra -->
+          <td>
+            <span th:if="${row.getScore('INTRA', 2) != null}"
+                  th:text="${row.getScore('INTRA', 2)}"
+                  th:class="${row.getScore('INTRA', 2) >= 65} ? 'score-ok' : 'score-low'"></span>
+            <span th:if="${row.getScore('INTRA', 2) == null}" class="score-dash">—</span>
+          </td>
+          <!-- Session 2 Final -->
+          <td>
+            <span th:if="${row.getScore('FINAL', 2) != null}"
+                  th:text="${row.getScore('FINAL', 2)}"
+                  th:class="${row.getScore('FINAL', 2) >= 65} ? 'score-ok' : 'score-low'"></span>
+            <span th:if="${row.getScore('FINAL', 2) == null}" class="score-dash">—</span>
+          </td>
+          <!-- Moyenne de la matière -->
+          <td>
+            <span th:class="${row.moyenne >= 65} ? 'score-ok' : 'score-low'"
+                  th:text="${row.moyenne}">—</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Moyenne générale -->
+    <div th:if="${!bulletin.rows.isEmpty()}" class="moyenne-generale">
+      <div class="moy-label">&#127942; Moyenne Générale</div>
+      <div class="moy-value"
+           th:text="${bulletin.moyenneGenerale}"
+           th:style="${bulletin.moyenneGenerale >= 65} ? 'color:#27ae60' : 'color:#e74c3c'">0</div>
+    </div>
+
+    <!-- Reprises -->
+    <div th:if="${!bulletin.reprises.isEmpty()}" class="reprise-box">
+      <h3>&#9888;&#65039; Reprises obligatoires</h3>
+      <div th:each="r : ${bulletin.reprises}" class="reprise-item" th:text="${r}">Matière</div>
+    </div>
+
+  </div>
+</div>
+</body></html>

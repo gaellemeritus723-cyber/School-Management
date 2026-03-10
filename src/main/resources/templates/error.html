@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Erreur ' + ${status} + ' — SchoolMS'">Erreur</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            min-height: 100vh; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .box {
+            background: white; border-radius: 20px;
+            padding: 56px 48px; text-align: center;
+            box-shadow: 0 24px 64px rgba(0,0,0,.2);
+            max-width: 440px; width: 100%;
+        }
+        .code { font-size: 80px; font-weight: 800; color: #e74c3c; line-height: 1; }
+        .icon { font-size: 56px; margin-bottom: 12px; }
+        h2 { color: #333; margin: 12px 0 8px; font-size: 22px; }
+        p { color: #888; font-size: 15px; margin-bottom: 28px; line-height: 1.6; }
+        a {
+            display: inline-block; padding: 13px 28px;
+            background: linear-gradient(135deg, #1a2980, #26d0ce);
+            color: white; text-decoration: none;
+            border-radius: 10px; font-weight: 700; font-size: 15px;
+        }
+        a:hover { opacity: .88; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <div class="icon" th:text="${is404} ? '🔍' : '⚠️'">⚠️</div>
+    <div class="code" th:text="${status}">500</div>
+    <h2 th:text="${is404} ? 'Page introuvable' : 'Erreur serveur'">Erreur</h2>
+    <p th:text="${message}">Une erreur s'est produite.</p>
+    <a href="/dashboard">Retour au tableau de bord</a>
+</div>
+</body>
+</html>

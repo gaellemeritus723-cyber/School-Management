@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Enseignant</title><style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: linear-gradient(180deg, #1a2980 0%, #26d0ce 100%); color: white; padding: 20px 0; position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+    .sidebar .logo { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,.2); margin-bottom: 8px; }
+    .sidebar .logo h2 { font-size: 20px; font-weight: 700; }
+    .sidebar .logo small { opacity: .7; font-size: 12px; }
+    .sidebar nav a { display: block; padding: 11px 20px; color: rgba(255,255,255,.85); text-decoration: none; font-size: 14px; transition: background .15s; }
+    .sidebar nav a:hover, .sidebar nav a.active { background: rgba(255,255,255,.18); color: white; }
+    .sidebar .sec { padding: 14px 20px 4px; font-size: 10px; text-transform: uppercase; opacity: .5; letter-spacing: 1px; }
+    .sidebar .bottom { position: absolute; bottom: 0; left: 0; right: 0; padding: 14px 20px; border-top: 1px solid rgba(255,255,255,.2); display: flex; align-items: center; gap: 10px; }
+    .sidebar .avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+    .sidebar .bottom a { color: rgba(255,255,255,.75); text-decoration: none; font-size: 12px; }
+    .sidebar .bottom a:hover { color: white; }
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; }
+    .topbar { background: white; padding: 14px 28px; box-shadow: 0 1px 4px rgba(0,0,0,.09); }
+    .topbar h1 { font-size: 20px; color: #1a2980; font-weight: 700; }
+    .content { padding: 28px; flex: 1; }
+    .card { background: white; border-radius: 12px; padding: 28px; box-shadow: 0 2px 8px rgba(0,0,0,.07); margin-bottom: 20px; }
+    .btn { display: inline-flex; align-items: center; gap: 5px; padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; text-decoration: none; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn-primary   { background: #1a2980; color: white; }
+    .btn-secondary { background: #ecf0f1; color: #555; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #555; font-size: 13px; }
+    .form-group input { width: 100%; padding: 10px 13px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+    .form-group input:focus { outline: none; border-color: #1a2980; }
+    .field-error { color: #e74c3c; font-size: 12px; margin-top: 4px; }
+    .form-actions { display: flex; gap: 10px; margin-top: 22px; }
+    .form-wrap { max-width: 640px; }
+    .section-title { font-size: 12px; text-transform: uppercase; color: #999; letter-spacing: 1px; margin: 24px 0 14px; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+    .info-box { background: #e8f4fd; border-left: 4px solid #1a2980; padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #1a2980; margin-bottom: 18px; }
+</style></head>
+<body>
+<div class="sidebar">
+  <div class="logo"><h2>&#127979; SchoolMS</h2><small>Gestion Scolaire</small></div>
+  <nav>
+    <div class="sec">Navigation</div>
+    <a href="/dashboard">&#128202; Tableau de bord</a>
+    <a href="/students">&#127891; Etudiants</a>
+    <a href="/teachers" class="active">&#128104;&#8205;&#127979; Enseignants</a>
+    <a href="/courses">&#128218; Cours</a>
+    <div class="sec">Administration</div>
+    <a href="/admin/users">&#128101; Utilisateurs</a>
+    <a href="/report/pdf">&#128196; Rapport PDF</a>
+  </nav>
+  <div class="bottom">
+    <div class="avatar" th:text="${#strings.toUpperCase(#strings.substring(#authentication.name,0,1))}">A</div>
+    <div>
+      <div style="font-size:13px;font-weight:600;" th:text="${#authentication.name}">admin</div>
+      <a href="/logout">Déconnexion</a>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar"><h1 th:text="${action} + ' un enseignant'">Enseignant</h1></div>
+  <div class="content">
+    <div class="card form-wrap">
+
+      <div class="info-box" th:if="${teacher.id == null}">
+        ℹ️ Le mot de passe de connexion sera automatiquement le <strong>nom complet</strong> de l'enseignant.
+      </div>
+
+      <form th:action="${teacher.id == null ? '/teachers' : '/teachers/edit/' + teacher.id}"
+            th:object="${teacher}" method="post">
+
+        <div class="section-title">Identifiants de connexion</div>
+
+        <div class="form-group">
+          <label>Code Enseignant * <span style="color:#888;font-weight:400;">(utilisé comme login)</span></label>
+          <input type="text" th:field="*{teacherCode}" placeholder="Ex: ENS-2024-001"/>
+          <div class="field-error" th:if="${#fields.hasErrors('teacherCode')}" th:errors="*{teacherCode}"></div>
+        </div>
+
+        <div class="section-title">Informations personnelles</div>
+
+        <div class="form-group">
+          <label>Nom complet * <span style="color:#888;font-weight:400;">(sera le mot de passe initial)</span></label>
+          <input type="text" th:field="*{name}" placeholder="Marie Curie"/>
+          <div class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+        </div>
+        <div class="form-group">
+          <label>Matière *</label>
+          <input type="text" th:field="*{subject}" placeholder="Mathématiques"/>
+          <div class="field-error" th:if="${#fields.hasErrors('subject')}" th:errors="*{subject}"></div>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" th:field="*{email}" placeholder="marie@ecole.fr"/>
+        </div>
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input type="tel" th:field="*{phone}" placeholder="+509 00 00 0000"/>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">&#128190; Enregistrer</button>
+          <a href="/teachers" class="btn btn-secondary">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</body></html>
