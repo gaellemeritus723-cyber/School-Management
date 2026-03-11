@@ -68,7 +68,7 @@ function colorize(input) {
     <div class="card-header">
       <div class="card-title">&#128203; <span th:text="${course.title}">Cours</span></div>
       <div class="tags">
-        <span class="tag tag-session">Session <span th:text="${examSession}">1</span></span>
+        <span class="tag tag-session">Session <span th:text="${session}">1</span></span>
         <span class="tag tag-intra" th:if="${examType == 'INTRA'}">Examen Intra</span>
         <span class="tag tag-final" th:if="${examType == 'FINAL'}">Examen Final</span>
       </div>
@@ -79,9 +79,10 @@ function colorize(input) {
     </div>
 
     <form th:action="@{/teacher/grades/course/{id}/save(id=${course.id})}" method="post">
-      <input type="hidden" name="examSession" th:value="${examSession}"/>
-      <input type="hidden" name="examType"    th:value="${examType}"/>
-
+      <input type="hidden" name="session" th:value="${session}"/>
+      <input type="hidden" name="examType" th:value="${examType}"/>
+     
+      
       <table>
         <thead>
           <tr>
