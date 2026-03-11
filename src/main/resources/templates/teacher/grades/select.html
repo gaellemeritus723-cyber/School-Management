@@ -48,7 +48,7 @@
     function proceed() {
         if (!selectedSession || !selectedType) return;
         const courseId = document.getElementById('courseId').value;
-        window.location.href = `/teacher/grades/course/${courseId}/enter?session=${selectedSession}&examType=${selectedType}`;
+        window.location.href = `/teacher/grades/course/${courseId}/enter?examSession=${selectedSession}&examType=${selectedType}`;
     }
 </script>
 </head>
