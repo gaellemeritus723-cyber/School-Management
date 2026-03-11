@@ -32,7 +32,6 @@ public class GradeController {
         this.teacherRepo = teacherRepo;
     }
 
-    // Page principale : liste des cours du prof
     @GetMapping
     public String myCourses(Authentication auth, Model model) {
         Teacher teacher = getTeacher(auth);
@@ -42,7 +41,6 @@ public class GradeController {
         return "teacher/grades/courses";
     }
 
-    // Choisir session et type d'examen pour un cours
     @GetMapping("/course/{courseId}")
     public String selectSession(@PathVariable Long courseId, Authentication auth, Model model) {
         Teacher teacher = getTeacher(auth);
@@ -55,10 +53,9 @@ public class GradeController {
         return "teacher/grades/select";
     }
 
-    // Saisie des notes : liste des étudiants avec champs de saisie
     @GetMapping("/course/{courseId}/enter")
     public String enterGrades(@PathVariable Long courseId,
-                              @RequestParam Integer session,
+                              @RequestParam(name = "session") Integer sessionNum,
                               @RequestParam String examType,
                               Authentication auth, Model model) {
         Teacher teacher = getTeacher(auth);
@@ -71,31 +68,33 @@ public class GradeController {
         List<GradeEntry> entries = students.stream().map(s -> {
             GradeEntry e = new GradeEntry();
             e.student = s;
-            gradeRepo.findByStudentAndCourseAndSessionAndExamType(s, course, session, examType)
+            gradeRepo.findByStudentAndCourseAndSessionAndExamType(s, course, sessionNum, examType)
                      .ifPresent(g -> e.score = g.getScore());
             return e;
         }).toList();
 
         model.addAttribute("teacher", teacher);
         model.addAttribute("course", course);
-        model.addAttribute("session", session);
+        model.addAttribute("sessionNum", sessionNum);
         model.addAttribute("examType", examType);
         model.addAttribute("entries", entries);
         return "teacher/grades/enter";
     }
 
-    // Sauvegarder les notes saisies
+    // Tout lu via HttpServletRequest pour éviter le conflit avec "session" de Thymeleaf
     @PostMapping("/course/{courseId}/save")
     public String saveGrades(@PathVariable Long courseId,
-                             @RequestParam Integer session,
-                             @RequestParam String examType,
                              HttpServletRequest request,
-                             Authentication auth, RedirectAttributes ra) {
+                             Authentication auth,
+                             RedirectAttributes ra) {
         Teacher teacher = getTeacher(auth);
         Course course = courseRepo.findById(courseId).orElseThrow();
         if (course.getTeacher() == null || !course.getTeacher().getId().equals(teacher.getId())) {
             return "redirect:/teacher/grades";
         }
+
+        Integer sessionNum = Integer.parseInt(request.getParameter("session"));
+        String examType = request.getParameter("examType");
 
         int saved = 0;
         Enumeration<String> paramNames = request.getParameterNames();
@@ -108,13 +107,14 @@ public class GradeController {
             Student student = studentRepo.findById(studentId).orElse(null);
             if (student == null) continue;
             try {
-                double score = Double.parseDouble(value);
+                // Note enregistrée en Integer (arrondi)
+                int scoreInt = (int) Math.round(Double.parseDouble(value));
                 Grade grade = new Grade();
                 grade.setStudent(student);
                 grade.setCourse(course);
-                grade.setSession(session);
+                grade.setSession(sessionNum);
                 grade.setExamType(examType);
-                grade.setScore(score);
+                grade.setScore((double) scoreInt);
                 gradeService.saveOrUpdate(grade);
                 saved++;
             } catch (NumberFormatException ignored) {}
